@@ -1,0 +1,110 @@
+import numpy as np
+import matplotlib.pyplot as plt
+def acceleration(M, nyu):
+    """
+    Compute the acceleration of an object based on its mass and friction coefficient.
+
+    Parameters:
+    M (float): Mass of the object.
+    nyu (float): Coefficient of friction.
+
+    Returns:
+    float: Acceleration.
+    """
+    return 9.8 * nyu
+def simulate_motion(M1, M2, M3, nyu1, nyu2, nyu3, L, dt, total_time):
+    """
+    Simulate the motion of three objects connected by a rope.
+
+    Parameters:
+    M1 (float): Mass of object M1.
+    M2 (float): Mass of object M2.
+    M3 (float): Mass of object M3.
+    nyu1 (float): Coefficient of friction for object M1.
+    nyu2 (float): Coefficient of friction for object M2.
+    nyu3 (float): Coefficient of friction for object M3.
+    L (float): Length of the rope.
+    dt (float): Time step for simulation.
+    total_time (float): Total time duration of the simulation.
+
+    Returns:
+    tuple: Arrays of time and positions, and the maximal distance M1 moves.
+    """
+    # Initialize variables
+    t = np.arange(0, total_time, dt)
+    x1 = np.zeros_like(t)
+    x2 = np.zeros_like(t)
+    x3 = np.zeros_like(t)
+    v2_direction = np.zeros_like(t)  # 1 for right, -1 for left
+
+    # Initial conditions
+    x1[0] = 0
+    x2[0] = L
+    x3[0] = L
+
+    # Compute accelerations
+    a1 = acceleration(M1, nyu1)
+    a2 = acceleration(M2, nyu2)
+    a3 = acceleration(M3, nyu3)
+
+    # Simulate motion
+    for i in range(1, len(t)):
+        # Update positions
+        x1[i] = x1[i-1] + 0.5 * a1 * dt**2
+        x2[i] = x2[i-1] + 0.5 * a2 * dt**2 * v2_direction[i-1]
+        x3[i] = x3[i-1] + 0.5 * a3 * dt**2
+
+        # Update velocities
+        v2_direction[i] = 1 if x2[i] >= x2[i-1] else -1
+
+    # Compute maximal distance D M1 moves from its original position
+    D = max(x1)
+
+    return t, x1, x2, x3, D
+def plot_motion(t, x1, x2, x3, D):
+    """
+    Plot the motion of three objects and the maximal distance M1 moves.
+
+    Parameters:
+    t (array): Array of time values.
+    x1 (array): Array of positions for object M1.
+    x2 (array): Array of positions for object M2.
+    x3 (array): Array of positions for object M3.
+    D (float): Maximal distance M1 moves.
+    """
+    plt.plot(t, x1, label='M1')
+    plt.plot(t, x2, label='M2')
+    plt.plot(t, x3, label='M3')
+    plt.xlabel('Time')
+    plt.ylabel('Distance')
+    plt.title('Motion Simulation')
+    plt.legend()
+
+    # Plot solid or void circle for M2
+    for i in range(len(t)):
+        if x2[i] >= x2[i-1]:
+            plt.plot(t[i], x2[i], 'o', color='blue', markersize=8)  # Solid circle when moving right
+        else:
+            plt.plot(t[i], x2[i], 'o', color='white', markersize=8, markeredgecolor='blue')  # Void circle when moving left
+
+    plt.axhline(0, color='black', linewidth=0.5)  # Ground line
+    plt.axvline(D, color='red', linestyle='--', label=f'Max Distance: {D:.2f}')  # Max distance line
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+# Input parameters
+M1 = float(input("Enter mass M1: "))
+M2 = float(input("Enter mass M2: "))
+M3 = float(input("Enter mass M3: "))
+nyu1 = float(input("Enter coefficient of friction nyu1: "))
+nyu2 = float(input("Enter coefficient of friction nyu2: "))
+nyu3 = float(input("Enter coefficient of friction nyu3: "))
+L = float(input("Enter rope length L: "))
+dt = float(input("Enter time step dt: "))
+total_time = float(input("Enter total time: "))
+
+# Simulate motion
+t, x1, x2, x3, D = simulate_motion(M1, M2, M3, nyu1, nyu2, nyu3, L, dt, total_time)
+
+# Plot motion
+plot_motion(t, x1, x2, x3, D)
